@@ -14,7 +14,7 @@
             "press": "LEFTCTRL"
         },
         "SpaceFn": {
-            "enable": false,
+            "enable": true,
             "type": "meta",
             "key": "SPACE",
             "click": "SPACE",
@@ -35,9 +35,8 @@
                 "0": "F10",
                 "MINUS": "F11",
                 "EQUAL": "F12",
-                "BACKSPACE": "DELETE",
-                "S": "SPACE",
-                "C": "CAPSLOCK"
+                "D": "DELETE",
+                "S": "BACKSPACE"
             }
         }
     }
