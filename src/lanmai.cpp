@@ -5,6 +5,7 @@
 #include "mapper.h"
 #include <fcntl.h>
 #include <functional>
+#include <iostream>
 #include <libevdev/libevdev-uinput.h>
 #include <libevdev/libevdev.h>
 #include <libudev.h>
@@ -14,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <thread>
 #include <unistd.h>
 #include <vector>
 
@@ -77,6 +79,8 @@ void handle_input(const std::string& path, SingleMapper sm, DoubleMapper dm, Met
             continue;
         }
         LLOG(LL_DEBUG, "accept key: type:%d, code:%d, value:%d", input.type, input.code, input.value);
+        std::cout << "accept key: type:" << input.type << ", code:" << input.code << ", value:" << input.value
+                  << std::endl;
         auto si = sm.map(input);
         for (auto di : dm.map(si)) {
             for (auto mi : mm.map(di)) {
@@ -91,10 +95,11 @@ int main(int argc, char* argv[]) {
     GLOBAL_LOG_LEVEL  = args.log_level;
     json cfg          = readConfig(args.config_path);
     auto [sm, dm, mm] = get_mappers(cfg);
-    if (!args.device.empty()) {
-        handle_input(args.device, sm, dm, mm);
-        return 0;
-    }
+    // if (!args.device.empty()) {
+    //     handle_input(args.device, sm, dm, mm);
+    //     return 0;
+    // }
+
     auto devices = get_kbd_devices();
     if (devices.size() == 0) {
         LLOG(LL_ERROR, "can't find out any key board device");
@@ -103,6 +108,12 @@ int main(int argc, char* argv[]) {
     for (auto&& d : devices) {
         LLOG(LL_INFO, "keyboard device:%s", d.c_str());
     }
-    handle_input(devices[0], sm, dm, mm);
+    std::vector<std::thread> threads;
+    for (auto&& d : devices) {
+        threads.push_back(std::thread(handle_input, d, sm, dm, mm));
+    }
+    for (auto&& t : threads) {
+        t.join();
+    }
     return 0;
 }
